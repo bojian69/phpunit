@@ -10,7 +10,7 @@
 namespace Bojian\Phpunit\tests;
 use Bojian\Phpunit\Base\BaseServiceTest;
 
-class DataTest extends BaseServiceTest
+class DemoTest extends BaseServiceTest
 {
     /**
      * @dataProvider dataProvider
