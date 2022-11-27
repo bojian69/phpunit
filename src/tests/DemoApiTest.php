@@ -19,7 +19,10 @@ class DemoApiTest extends BaseApiTest
     protected $isLogin = true;
     protected $host = 'http://ucms-api.bojian.xyz:8888';
 
-
+    /**
+     * get请求
+     * @return void
+     */
     public function testGetConfig()
     {
         $params = [
@@ -33,11 +36,11 @@ class DemoApiTest extends BaseApiTest
         $this->assertSame(0, $result['error_code'] ?? 1);
         $reqState = $this->sendApiDocsFile('Roommate/getCreateNum.req.json', $this->setApiParam($params, 'docs'));
         $respState = $this->sendApiDocsFile('Roommate/getConfig.resp.json', $result);
-//        trigger_error('sendApiDocsFileState：' . json_encode([$reqState, $respState]), E_USER_NOTICE);
+        echo 'sendApiDocsFileState：' . json_encode([$reqState, $respState]);
     }
 
     /**
-     * post
+     * post请求
      * @return void
      */
     public function testCreate()
@@ -66,6 +69,7 @@ class DemoApiTest extends BaseApiTest
         $this->assertSame(0, $result['error_code'] ?? 1);
         $reqState = $this->sendApiDocsFile('Roommate/getCreateNum.req.json', $this->setApiParam($params, 'docs'));
         $respState = $this->sendApiDocsFile('Roommate/create.resp.json', $result);
-        trigger_error('sendApiDocsFileState：' . json_encode([$reqState, $respState]), E_USER_NOTICE);
+//        trigger_error('sendApiDocsFileState：' . json_encode([$reqState, $respState]), E_USER_NOTICE);
+        echo 'sendApiDocsFileState：' . json_encode([$reqState, $respState]);
     }
 }
