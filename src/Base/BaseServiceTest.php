@@ -12,5 +12,4 @@ use PHPUnit\Framework\TestCase;
 
 class BaseServiceTest extends TestCase
 {
-
 }

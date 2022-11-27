@@ -13,12 +13,90 @@ use PHPUnit\Framework\TestCase;
 
 class BaseApiTest extends TestCase
 {
-    protected  $host;             //域名
-    protected  $user;             //账号
-    protected  $password;         //密码
-    protected  $appId = 5;        //登录appId
-    protected  $authorization;    //登录token
-    protected  $isLogin = false;  //是否需要登录 true-是 false-否
+    protected $host;             //域名
+    protected $user;             //账号
+    protected $password;         //密码
+    protected $appId = 5;        //登录appId
+    protected $authorization;    //登录token
+    protected $isLogin = false;  //是否需要登录 true-是 false-否
+    protected $locale = 'zh-cn'; //语言配置
+
+    /**
+     * POST请求
+     * @param string $path
+     * @param array $params
+     * @param array $headers
+     * @return bool|string|void
+     */
+    public function post(string $path, array $params = [], array $header = [])
+    {
+        return $this->request('POST', $path, $params, $header);
+    }
+
+    /**
+     * api请求基类
+     * @param string $method
+     * @param string $path
+     * @param array $data
+     * @param array $headers
+     * @return bool|string|void
+     */
+    private function request(string $method, string $path, array $params = [], array $headers = [])
+    {
+        /**
+         * 处理传参信息
+         * 支持key-value直传和key-array解析
+         */
+        $dataStr = '';
+        if (!empty($params)) {
+            foreach ($params as $k => $v) {
+                $dataStr = $dataStr . sprintf('%s=%s&', $k, rawurlencode(is_array($v) ? ($v['value'] ?? '') : $v));
+            }
+        }
+        $dataStr = trim(rtrim($dataStr, '&'), '');
+        /**
+         * 处理url
+         */
+        $url = sprintf('%s/%s', $this->host, $path);
+        $curl = curl_init();
+
+        $header = array(
+            "cache-control: no-cache",
+            "content-type: application/x-www-form-urlencoded",
+            "locale: " . $this->locale,
+            "x-client-appid: " . $this->appId,
+            "x-client-authorization: " . $this->authorization
+        );
+        if (!empty($headers)) {
+            foreach ($headers as $k => $v) {
+                $header[] = sprintf('%s: %s', $k, $v);
+            }
+        }
+
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+        $optArr = [
+            CURLOPT_URL => sprintf('%s/%s', trim($this->host), trim($path)),
+            CURLOPT_HEADER => 0,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_POSTFIELDS => "$dataStr",
+            CURLOPT_CUSTOMREQUEST => "$method",
+        ];
+        curl_setopt_array($curl, $optArr);
+
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+
+        curl_close($curl);
+
+        if ($err) {
+            trigger_error('cURLError：' . $err, E_USER_NOTICE);
+        } else {
+            echo $response;
+            return json_decode($response, true);
+        }
+    }
 
     /**
      * post请求api
@@ -26,22 +104,22 @@ class BaseApiTest extends TestCase
      * @param array $params
      * @return false|mixed
      */
-    public function post(string $path, array $params = [])
+    public function OldPost(string $path, array $params = [])
     {
         $url = sprintf('%s%s', $this->host, $path);
         $header = $this->parseSignHeaders();
-        trigger_error('parseSignHeaders：' . json_encode($header), E_USER_NOTICE);
+//        trigger_error('parseSignHeaders：' . json_encode($header), E_USER_NOTICE);
 
         if (empty($header) && $this->isLogin) {
             return false;
         }
 
-        trigger_error('postUrl：' . $url, E_USER_NOTICE);
+//        trigger_error('postUrl：' . $url, E_USER_NOTICE);
         $request = \Requests::post($url, $header, $params);
         $requestBody = json_decode($request->body, true);
         $errorCode = (int) (isset($requestBody['error_code']) ? $requestBody['error_code'] : 1);
         if (0 !== $errorCode) {
-            trigger_error('postRequestCurlError', E_USER_NOTICE);
+//            trigger_error('postRequestCurlError', E_USER_NOTICE);
             return false;
         }
 
@@ -54,7 +132,7 @@ class BaseApiTest extends TestCase
      * @param array $params
      * @return false|mixed
      */
-    public function get(string $path, array $params = [])
+    public function OldGet(string $path, array $params = [])
     {
         $url = sprintf('%s%s', $this->host, $path);
         !empty($params) && $url = sprintf('%s?%s', $url, http_build_query($params));
@@ -89,7 +167,7 @@ class BaseApiTest extends TestCase
         switch ($type) {
             case 'value': //api请求Key-Value输出
                 foreach ($param as $k => $v) {
-                    $result[$k] = isset($v['value']) ? $v['value'] : '';
+                    $result[$k] = $v['value'] ?? '';
                 }
                 break;
 
@@ -97,8 +175,8 @@ class BaseApiTest extends TestCase
                 $result = [
                     'type' => 'object',
                     'properties' => array_map(function ($p) {
-                        $value = isset($p['value']) ? $p['value'] : '';
-                        $description = isset($p['description']) ? $p['description'] : '';
+                        $value = $p['value'] ?? '';
+                        $description = $p['description'] ?? '';
                         return [
                             'type' => is_int($value) ? 'integer' : 'string',
                             'required' => (bool) (isset($p['required']) ? $p['required'] : true),

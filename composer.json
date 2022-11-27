@@ -3,7 +3,7 @@
     "description": "phpunit demo",
     "autoload": {
         "psr-4": {
-            "Bojian\\Phpunit\\": "src/"
+            "Bojian\\Phpunit\\": "src/Base"
         }
     },
     "authors": [
