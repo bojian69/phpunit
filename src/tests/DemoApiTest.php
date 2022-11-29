@@ -8,9 +8,11 @@
  */
 
 namespace Bojian\Phpunit\tests;
-use Bojian\Phpunit\Base\BaseApiTest;
 
-class DemoApiTest extends BaseApiTest
+
+use Bojian\Phpunit\BaseApi;
+
+class DemoApiTest extends BaseApi
 {
 
     //配置登录信息

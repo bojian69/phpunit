@@ -7,11 +7,11 @@
  * @since 2022/11/26 9:46 AM
  * @version 0.1
  */
-namespace Bojian\Phpunit\Base;
+namespace Bojian\Phpunit;
 
 use PHPUnit\Framework\TestCase;
 
-class BaseApiTest extends TestCase
+class BaseApi extends TestCase
 {
     protected $host;             //域名
     protected $user;             //账号

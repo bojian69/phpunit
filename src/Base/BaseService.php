@@ -6,10 +6,10 @@
  * @since 2022/11/26 9:51 AM
  * @version 0.1
  */
-namespace Bojian\Phpunit\Base;
+namespace Bojian\Phpunit;
 
 use PHPUnit\Framework\TestCase;
 
-class BaseServiceTest extends TestCase
+class BaseService extends TestCase
 {
 }
