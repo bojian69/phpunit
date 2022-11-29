@@ -137,12 +137,13 @@ class BaseApi extends TestCase
         // 获取文件夹和文件名称
         [$dirName, $fileName] = explode('/', $path);
         $filePath = __DIR__ . '/' . $path;
-        if (false !== strpos($filePath, 'tests/app/api/controller')) {
-            $filePath = str_replace("tests/app/api/controller", 'apps/schema', $filePath);
-        }
 
         if (false !== strpos($filePath, '/Base/')) {
             $filePath = str_replace("/Base/", '/schema/', $filePath);
+        }
+
+        if (false !== strpos($filePath, 'vendor/bojian/phpunit/src')) {
+            $filePath = str_replace("vendor/bojian/phpunit/src", 'apps', $filePath);
         }
 
         // 验证文件夹是否存在；否-创建文件夹
