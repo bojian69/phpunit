@@ -34,10 +34,11 @@ class DemoApiTest extends BaseApi
             ],
         ];
 
-        $result = $this->get('/roommate/getConfig', $this->setApiParam($params, 'value'));
+        $result = $this->get('roommate/getConfig', $this->setApiParam($params));
         $this->assertSame(0, $result['error_code'] ?? 1);
-        $reqState = $this->sendApiDocsFile('Roommate/getCreateNum.req.json', $this->setApiParam($params, 'docs'));
-        $respState = $this->sendApiDocsFile('Roommate/getConfig.resp.json', $result);
+        $reqState = $this->sendApiDocsFile($params, 'docs');
+        $respState = $this->sendApiDocsFile($result);
+
         echo 'sendApiDocsFileState：' . json_encode([$reqState, $respState]);
     }
 
@@ -69,9 +70,9 @@ class DemoApiTest extends BaseApi
 
         $result = $this->post('roommate/create', $this->setApiParam($params));
         $this->assertSame(0, $result['error_code'] ?? 1);
-        $reqState = $this->sendApiDocsFile('Roommate/getCreateNum.req.json', $this->setApiParam($params, 'docs'));
-        $respState = $this->sendApiDocsFile('Roommate/create.resp.json', $result);
-//        trigger_error('sendApiDocsFileState：' . json_encode([$reqState, $respState]), E_USER_NOTICE);
+        $reqState = $this->sendApiDocsFile($params, 'docs');
+        $respState = $this->sendApiDocsFile($result);
+
         echo 'sendApiDocsFileState：' . json_encode([$reqState, $respState]);
     }
 }

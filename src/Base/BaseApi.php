@@ -21,6 +21,20 @@ class BaseApi extends TestCase
     protected $isLogin = false;  //是否需要登录 true-是 false-否
     protected $locale = 'zh-cn'; //语言配置
 
+    /**************************************************
+     *  下边内容系统配置-先了解机制再改
+     *************************************************/
+    //项目名称
+    protected $sys = 'api';
+    //是否写路由文件
+    protected $writeRout = false;
+    //控制器
+    protected $controller;
+    //方法名
+    protected $function;
+    //接口名称
+    protected $apiName;
+
     /**
      * POST请求
      * @param string $path
@@ -33,6 +47,13 @@ class BaseApi extends TestCase
         return $this->request('POST', $path, $params, $header);
     }
 
+    /**
+     * GET请求
+     * @param string $path
+     * @param array $params
+     * @param array $header
+     * @return bool|string|void
+     */
     public function get(string $path, array $params = [], array $header = [])
     {
         return $this->request('GET', $path, $params, $header);
@@ -48,6 +69,17 @@ class BaseApi extends TestCase
      */
     private function request(string $method, string $path, array $params = [], array $headers = [])
     {
+        // 分割path获取项目，控制器和方法名
+        $sysArray = explode('/', $path);
+        if (3 === count($sysArray)) {
+            [$this->sys, $this->controller, $this->function] = explode('/', $path);
+        } else {
+            [$this->controller, $this->function] = explode('/', $path);
+        }
+
+        // 生成接口文档文件
+        $this->writeRout && $this->setRoute($method);
+
         /**
          * 处理传参信息
          * 支持key-value直传和key-array解析
@@ -123,20 +155,226 @@ class BaseApi extends TestCase
     }
 
     /**
+     * 设置请求路由
+     * @param string $method
+     * @return bool
+     */
+    private function setRoute(string $method)
+    {
+        $apiPath = sprintf('%s/%s/%s', $this->sys, ucfirst($this->controller), $this->function);
+
+        // 获取路由文件
+        $filePath = str_replace("vendor/bojian/phpunit/src/Base", 'configs/route.php', __DIR__);
+        if (false === strrpos($filePath, 'route.php')) {
+            $filePath = str_replace('Base', 'route/route.php', $filePath);
+        }
+
+        // 验证路由文件是否存在-存在直接返回
+        $fileContent = !file_exists($filePath) ? '' : file_get_contents($filePath);
+        if (false !== strrpos($fileContent, $apiPath)) {
+            return true;
+        }
+
+        // 创建项目层路由
+        $this->createSysRoute($filePath);
+
+        // 创建路由组
+        $this->createGroupRoute($filePath);
+
+        // 创建api路由
+        $this->createApiRoute($filePath, $apiPath, $method);
+
+        return true;
+    }
+
+    /**
+     * 创建api路由
+     * @param $filePath
+     * @param $apiPath
+     * @return bool
+     */
+    private function createApiRoute($filePath, $apiPath, $method)
+    {
+        $fileContent = file_get_contents($filePath);
+        $method = strtolower($method);
+        $groupRoute = "Route::group('$this->controller', function () {";
+        $apiRoute = "Route::$method('$this->function', '$apiPath');";
+
+        if ('api' === $this->sys) {
+            $writeContent =  <<<EOF
+$groupRoute
+
+    // phpunit::created
+    $apiRoute
+EOF;
+        } else {
+            $writeContent =  <<<EOF
+    $groupRoute
+       // phpunit::created
+       $apiRoute
+EOF;
+        }
+
+        $newContent = str_replace($groupRoute, $writeContent, $fileContent);
+        file_put_contents($filePath, $newContent);
+
+        return true;
+    }
+
+    /**
+     * 创建路由组
+     * @param string $filePath
+     * @return bool
+     */
+    private function createGroupRoute(string $filePath)
+    {
+        $fileContent = file_get_contents($filePath);
+        $groupRoute = "Route::group('$this->controller', function () {";
+
+        // 路由组是否存在-存在直接返回
+        if (false !== strrpos($fileContent, $groupRoute)) {
+            return true;
+        }
+
+        // 验证是否为api路由组-api路由组只有一层Route::group
+        $sysRoute = "Route::group('$this->sys', function () {";
+        $controller = ucfirst($this->controller);
+        if ('api' === $this->sys) {
+            $sysRoute = 'use think\Route;';
+            $writeContent =  <<<EOF
+$sysRoute
+
+// +----------------------------------------------------------------------+
+// | =====================$controller 路由组======================
+// +----------------------------------------------------------------------+
+$groupRoute
+  
+});
+EOF;
+        } else {
+            $writeContent =  <<<EOF
+$sysRoute
+
+   // +----------------------------------------------------------------------+
+   // | =====================$controller 路由组======================
+   // +----------------------------------------------------------------------+
+   $groupRoute
+  
+   });
+EOF;
+        }
+
+        // 字符串替换
+        $newContent = str_replace($sysRoute, $writeContent, $fileContent);
+        file_put_contents($filePath, $newContent);
+
+        return true;
+    }
+
+
+    /**
+     * 创建项目层路由
+     * @param string $filePath
+     * @return bool
+     */
+    private function createSysRoute(string $filePath)
+    {
+        // 判断路由文件是否存在
+        if (!file_exists($filePath)) {
+            $fileContent = <<<EOF
+<?php
+
+use think\Route;
+
+
+
+return [
+    // 多项目组时首页的跳转
+    '/' => 'api/index/index',
+    // miss路由
+    '__miss__' => 'api/Error/_empty',
+];
+EOF;
+            $dirPath = rtrim(str_replace('route.php', '', $filePath), '/');
+
+            if (!file_exists($dirPath)) {
+                mkdir($dirPath,0777,true);
+            }
+
+            file_put_contents($filePath, $fileContent);
+        }
+
+        // api组不创建路由组文件
+        if ('api' === $this->sys) {
+            return true;
+        }
+
+        $fileContent = file_get_contents($filePath);
+        $searchStr = "Route::group('$this->sys', function () {";
+        $writeStart = <<<EOF
+use think\Route;
+
+Route::group('$this->sys', function () {
+EOF;
+        $writeEnd = <<<EOF
+
+
+});
+EOF;
+        $writeContent = $writeStart . $writeEnd;
+
+        // 判断项目组是否存在
+        if (false === strrpos($fileContent, $searchStr)) {
+            // 字符串替换
+            $newContent = str_replace('use think\Route;', $writeContent, $fileContent);
+            file_put_contents($filePath, $newContent);
+        }
+
+        return true;
+    }
+
+    /**
+     * 文件写入方法
+     * @param $writeContent
+     * @param $filePath
+     * @param $k
+     * @return void
+     */
+    private function writeFile($writeContent, $filePath, $key = 21)
+    {
+        // 读写模式打开
+        $fp = fopen($filePath, "r+");
+        // 设定写入指针（从哪里开始写）
+        fseek($fp, $key);
+        // 写入内容
+        fwrite($fp, '\n' . $writeContent);
+        // 关闭文件
+        fclose($fp);
+    }
+
+    /**
      * 创建接口文档文件
-     * @param string $path
-     * @param $fileContent
+     * @param $fileContent  文件内容
+     * @param $type         格式化类型 docs-初始化接口传参文件
      * @return false|int
      */
-    public function sendApiDocsFile(string $path, $fileContent)
+    public function sendApiDocsFile($fileContent, $type = '')
     {
         // 验证路径是否合格
-        if (empty($path) || false === strpos($path, '/')) {
+        if (empty($this->controller) || empty($this->function)) {
             return false;
         }
+
+        // 验证是否为返回结果 docs：传参内容
+        if ('docs' === $type) {
+            $fileName = sprintf('%s.req.json', $this->function);
+            $fileContent = $this->setApiParam($fileContent, 'docs');
+        } else {
+            $fileName = sprintf('%s.resp.json', $this->function);
+        }
+
         // 获取文件夹和文件名称
-        [$dirName, $fileName] = explode('/', $path);
-        $filePath = __DIR__ . '/' . $path;
+        $filePath = sprintf('%s/%s/%s', __DIR__, ucfirst($this->controller), $fileName);
 
         if (false !== strpos($filePath, '/Base/')) {
             $filePath = str_replace("/Base/", '/schema/', $filePath);
@@ -170,7 +408,7 @@ class BaseApi extends TestCase
     {
         $result = [];
         switch ($type) {
-            case 'value': //废弃：api请求Key-Value输出
+            case 'value': //api请求Key-Value输出
                 foreach ($param as $k => $v) {
                     $result[$k] = $v['value'] ?? '';
                 }
@@ -267,5 +505,4 @@ class BaseApi extends TestCase
             'x-client-authorization' => $this->authorization,
         ];
     }
-
 }
