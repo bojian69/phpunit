@@ -203,7 +203,6 @@ class BaseApi extends TestCase
         if ('api' === $this->sys) {
             $writeContent =  <<<EOF
 $groupRoute
-
     // phpunit::created
     $apiRoute
 EOF;
