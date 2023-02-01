@@ -18,7 +18,6 @@ class BaseApi extends TestCase
     protected $password;         //密码
     protected $appId = 5;        //登录appId
     protected $authorization;    //登录token
-    protected $isLogin = false;  //是否需要登录 true-是 false-否
     protected $locale = 'zh-cn'; //语言配置
 
     /**************************************************
@@ -34,6 +33,17 @@ class BaseApi extends TestCase
     protected $function;
     //接口名称
     protected $apiName;
+
+    /**
+     * 配置登录域名信息
+     * @return void
+     */
+    protected function setUp(): void
+    {
+        $this->host = $_ENV['HOST'] ?? '';
+        $this->appId = $_ENV['APP_ID'] ?? '';
+        $this->authorization = $_ENV['APP_TOKEN'] ?? '';
+    }
 
     /**
      * POST请求
@@ -431,77 +441,5 @@ EOF;
         }
 
         return $result;
-    }
-
-    /**
-     * 弃用：post请求api
-     * @param string $path
-     * @param array $params
-     * @return false|mixed
-     */
-    public function OldPost(string $path, array $params = [])
-    {
-        $url = sprintf('%s%s', $this->host, $path);
-        $header = $this->parseSignHeaders();
-//        trigger_error('parseSignHeaders：' . json_encode($header), E_USER_NOTICE);
-
-        if (empty($header) && $this->isLogin) {
-            return false;
-        }
-
-//        trigger_error('postUrl：' . $url, E_USER_NOTICE);
-        $request = \Requests::post($url, $header, $params);
-        $requestBody = json_decode($request->body, true);
-        $errorCode = (int) (isset($requestBody['error_code']) ? $requestBody['error_code'] : 1);
-        if (0 !== $errorCode) {
-//            trigger_error('postRequestCurlError', E_USER_NOTICE);
-            return false;
-        }
-
-        return $requestBody;
-    }
-
-    /**
-     * 弃用：get请求api
-     * @param string $path
-     * @param array $params
-     * @return false|mixed
-     */
-    public function OldGet(string $path, array $params = [])
-    {
-        $url = sprintf('%s%s', $this->host, $path);
-        !empty($params) && $url = sprintf('%s?%s', $url, http_build_query($params));
-        $header = $this->parseSignHeaders();
-        trigger_error('parseSignHeaders：' . json_encode($header, JSON_UNESCAPED_UNICODE), E_USER_NOTICE);
-        if (empty($header) && $this->isLogin) {
-            return false;
-        }
-        trigger_error('postUrl：' . $url, E_USER_NOTICE);
-        $request = \Requests::get($url, $header);
-        $requestBody = json_decode($request->body, true);
-        $errorCode = (int) (isset($requestBody['error_code']) ? $requestBody['error_code'] : 1);
-        trigger_error('getRequestBody：' . json_encode($requestBody, JSON_UNESCAPED_UNICODE), E_USER_NOTICE);
-        if (0 !== $errorCode) {
-            trigger_error('postRequestCurlError', E_USER_NOTICE);
-            return false;
-        }
-
-        return $requestBody;
-    }
-
-    /**
-     * 弃用：获取api请求header
-     * @return array
-     */
-    private function parseSignHeaders(): array
-    {
-        if ((false === $this->isLogin) || ($this->isLogin && empty($this->authorization))) {
-            return [];
-        }
-
-        return  [
-            'x-client-appid' => $this->appId,
-            'x-client-authorization' => $this->authorization,
-        ];
     }
 }
