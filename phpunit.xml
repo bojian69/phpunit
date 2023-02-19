@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         bootstrap="tests/bootstrap.php"
+>
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory>./tests/</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">apps/</directory>
+        </whitelist>
+    </filter>
+    <php>
+        <env name="HOST" value="http://ucms-api.bojian.xyz:8888"/>
+        <env name="APP_ID" value="5"/>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_TOKEN" value="bf4261df274495ea03bddfd853467d3b29be0af3"/>
+    </php>
+</phpunit>

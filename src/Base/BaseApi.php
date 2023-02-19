@@ -120,7 +120,6 @@ class BaseApi extends TestCase
         /**
          * 处理url
          */
-        $url = sprintf('%s/%s', $this->host, $path);
         $curl = curl_init();
 
         $header = array(

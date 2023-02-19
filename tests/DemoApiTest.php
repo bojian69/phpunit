@@ -17,9 +17,9 @@ class DemoApiTest extends BaseApi
 
     //配置登录信息
     protected $appId = 5;
-    protected $authorization = 'bf4261df274495ea03bddfd853467d3b29be0af3';
+    protected $authorization;
     protected $isLogin = true;
-    protected $host = 'http://ucms-api.bojian.xyz:8888';
+    protected $host;
 
     /**
      * get请求

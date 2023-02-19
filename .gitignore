@@ -3,3 +3,4 @@
 /src/schema
 /src/route
 .phpunit.result.cache
+/src/api/schema

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<?php
+/**
+ * Created by PhpStorm.
+ * User: compilot
+ * Date: 10/11/2016
+ * Time: 10:42 AM
+ */
+$input = 'StringToConvertToCamelCase';
+$camelCase = preg_replace_callback('/_([a-z])/', function ($matches) {
+    return strtoupper($matches[1]);
+}, $input);
+
+echo $camelCase;
+?>
+
+</body>
+</html>
