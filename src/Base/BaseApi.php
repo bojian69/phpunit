@@ -248,19 +248,19 @@ EOF;
         // 验证是否为api路由组-api路由组只有一层Route::group
         $sysRoute = "Route::group('$this->sys', function () {";
         $controller = ucfirst($this->controller);
-        if ('api' === $this->sys) {
-            $sysRoute = 'use think\Route;';
-            $writeContent =  <<<EOF
-$sysRoute
-
-// +----------------------------------------------------------------------+
-// | =====================$controller 路由组======================
-// +----------------------------------------------------------------------+
-$groupRoute
-  
-});
-EOF;
-        } else {
+//        if ('api' === $this->sys) {
+//            $sysRoute = 'use think\Route;';
+//            $writeContent =  <<<EOF
+//$sysRoute
+//
+//// +----------------------------------------------------------------------+
+//// | =====================$controller 路由组======================
+//// +----------------------------------------------------------------------+
+//$groupRoute
+//
+//});
+//EOF;
+//        } else {
             $writeContent =  <<<EOF
 $sysRoute
 
@@ -271,7 +271,7 @@ $sysRoute
   
    });
 EOF;
-        }
+//        }
 
         // 字符串替换
         $newContent = str_replace($sysRoute, $writeContent, $fileContent);
@@ -386,7 +386,7 @@ EOF;
         $filePath = sprintf('%s/%s/%s', __DIR__, ucfirst($this->controller), $fileName);
 
         if (false !== strpos($filePath, '/Base/')) {
-            $filePath = str_replace("/Base/", '/schema/', $filePath);
+            $filePath = str_replace("/Base/", "/$this->sys/schema/", $filePath);
         }
 
         if (false !== strpos($filePath, 'vendor/bojian/phpunit/src')) {
