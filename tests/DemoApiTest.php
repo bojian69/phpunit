@@ -14,12 +14,7 @@ use Bojian\Phpunit\BaseApi;
 
 class DemoApiTest extends BaseApi
 {
-
-    //配置登录信息
-    protected $appId = 5;
-    protected $authorization;
-    protected $isLogin = true;
-    protected $host;
+    protected $writeRout = true;
 
     /**
      * get请求
@@ -34,7 +29,7 @@ class DemoApiTest extends BaseApi
             ],
         ];
 
-        $result = $this->get('roommate/getConfig', $this->setApiParam($params));
+        $result = $this->get('api/roommate/getConfig', $this->setApiParam($params));
         $this->assertSame(0, $result['error_code'] ?? 1);
         $reqState = $this->sendApiDocsFile($params, 'docs');
         $respState = $this->sendApiDocsFile($result);

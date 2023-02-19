@@ -209,19 +209,11 @@ class BaseApi extends TestCase
         $groupRoute = "Route::group('$this->controller', function () {";
         $apiRoute = "Route::$method('$this->function', '$apiPath');";
 
-        if ('api' === $this->sys) {
-            $writeContent =  <<<EOF
-$groupRoute
-    // phpunit::created
-    $apiRoute
-EOF;
-        } else {
             $writeContent =  <<<EOF
     $groupRoute
-       // phpunit::created
-       $apiRoute
+        // phpunit::created
+        $apiRoute
 EOF;
-        }
 
         $newContent = str_replace($groupRoute, $writeContent, $fileContent);
         file_put_contents($filePath, $newContent);
@@ -247,19 +239,6 @@ EOF;
         // 验证是否为api路由组-api路由组只有一层Route::group
         $sysRoute = "Route::group('$this->sys', function () {";
         $controller = ucfirst($this->controller);
-//        if ('api' === $this->sys) {
-//            $sysRoute = 'use think\Route;';
-//            $writeContent =  <<<EOF
-//$sysRoute
-//
-//// +----------------------------------------------------------------------+
-//// | =====================$controller 路由组======================
-//// +----------------------------------------------------------------------+
-//$groupRoute
-//
-//});
-//EOF;
-//        } else {
             $writeContent =  <<<EOF
 $sysRoute
 
@@ -270,7 +249,6 @@ $sysRoute
   
    });
 EOF;
-//        }
 
         // 字符串替换
         $newContent = str_replace($sysRoute, $writeContent, $fileContent);
@@ -312,11 +290,7 @@ EOF;
             file_put_contents($filePath, $fileContent);
         }
 
-        // api组不创建路由组文件
-        if ('api' === $this->sys) {
-            return true;
-        }
-
+        // 读取路由文件
         $fileContent = file_get_contents($filePath);
         $searchStr = "Route::group('$this->sys', function () {";
         $writeStart = <<<EOF
