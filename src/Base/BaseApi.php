@@ -242,10 +242,10 @@ EOF;
             $writeContent =  <<<EOF
 $sysRoute
 
-   // +----------------------------------------------------------------------+
-   // | =====================$controller 路由组======================
-   // +----------------------------------------------------------------------+
-   $groupRoute
+ // +----------------------------------------------------------------------+
+ // | =====================$controller 路由组======================
+ // +----------------------------------------------------------------------+
+ $groupRoute
   
    });
 EOF;
@@ -377,7 +377,7 @@ EOF;
             unlink($filePath);
         }
 
-        return file_put_contents($filePath, json_encode($fileContent, JSON_UNESCAPED_UNICODE));
+        return file_put_contents($filePath, json_encode($fileContent, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
     }
 
     /**
