@@ -19,6 +19,8 @@ class BaseApi extends TestCase
     protected $appId = 5;        //登录appId
     protected $authorization;    //登录token
     protected $locale = 'zh-cn'; //语言配置
+    protected $signature;        //签名
+
 
     /**************************************************
      *  下边内容系统配置-先了解机制再改
@@ -129,6 +131,7 @@ class BaseApi extends TestCase
             "x-client-appid: " . $this->appId,
         );
         !empty($this->authorization) && $header[] = "x-client-authorization: " . $this->authorization;
+        !empty($this->authorization) && $header[] = "x-client-signature: " . $this->signature;
         if (!empty($headers)) {
             foreach ($headers as $k => $v) {
                 $header[] = sprintf('%s: %s', $k, $v);
