@@ -17,6 +17,7 @@ class BaseApi extends TestCase
     protected $user;             //账号
     protected $password;         //密码
     protected $appId = 5;        //登录appId
+    protected $aprId;        //小程序aprId
     protected $authorization;    //登录token
     protected $locale = 'zh-cn'; //语言配置
     protected $signature;        //签名
@@ -44,6 +45,7 @@ class BaseApi extends TestCase
     {
         $this->host = $_ENV['HOST'] ?? '';
         $this->appId = $_ENV['APP_ID'] ?? '';
+        $this->aprId = $_ENV['APR_ID'] ?? '';
         $this->authorization = $_ENV['APP_TOKEN'] ?? '';
     }
 
@@ -130,8 +132,15 @@ class BaseApi extends TestCase
             "locale: " . $this->locale,
             "x-client-appid: " . $this->appId,
         );
-        !empty($this->authorization) && $header[] = "x-client-authorization: " . $this->authorization;
-        !empty($this->authorization) && $header[] = "x-client-signature: " . $this->signature;
+
+        if (!empty($this->authorization)) {
+            $header[] = "x-client-authorization: " . $this->authorization;
+        }
+
+        if (!empty($this->signature)) {
+            $header[] = "x-client-signature: " . $this->signature;
+        }
+
         if (!empty($headers)) {
             foreach ($headers as $k => $v) {
                 $header[] = sprintf('%s: %s', $k, $v);
@@ -417,5 +426,33 @@ EOF;
         }
 
         return $result;
+    }
+
+    /**
+     * 加密
+     * @param $data
+     * @param string $secretKey
+     * @param string $iv
+     * @return string
+     */
+    public function encrypt($data, string $secretKey, string $iv): string
+    {
+        $data = is_array($data) ? json_encode($data, JSON_PARTIAL_OUTPUT_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE) : $data;
+        $result = openssl_encrypt($data, 'AES-128-CBC', $secretKey, OPENSSL_RAW_DATA, $iv);
+        return base64_encode($result);
+    }
+
+    /**
+     * 解密
+     * @param string $data
+     * @param string $secretKey
+     * @param string $iv
+     * @return false|mixed|string
+     */
+    public function decrypt(string $data, string $secretKey, string $iv)
+    {
+        $decodedData = base64_decode($data);
+        $result = openssl_decrypt($decodedData, 'AES-128-CBC', $secretKey, OPENSSL_RAW_DATA, $iv);
+        return empty($result) ? $result : json_decode($result, true) ;
     }
 }
